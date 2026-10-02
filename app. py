@@ -1,0 +1,52 @@
+import streamlit as st
+import joblib
+
+# Load trained MLP model and TF-IDF vectorizer
+model = joblib.load("Models/neural_network_model.pkl")
+vectorizer = joblib.load("Models/tfidf_vectorizer.pkl")
+
+st.set_page_config(
+    page_title="AI Fake News Detector",
+    page_icon="📰"
+)
+
+st.title("📰 AI Fake News Detection")
+st.write("TF-IDF + Multi-Layer Perceptron (MLP)")
+
+st.write("Enter a news article or news headline below:")
+
+news_text = st.text_area(
+    "News Text",
+    height=250,
+    placeholder="Paste the news article here..."
+)
+
+if st.button("🔍 Detect News"):
+    if news_text.strip() == "":
+        st.warning("Please enter some news text.")
+    else:
+        # Convert text into TF-IDF features
+        text_vector = vectorizer.transform([news_text])
+
+        # MLP prediction
+        prediction = model.predict(text_vector)[0]
+
+        if prediction == 1:
+            st.success("✅ PREDICTION: REAL NEWS")
+        else:
+            st.error("❌ PREDICTION: FAKE NEWS")
+
+        # Probability
+        probability = model.predict_proba(text_vector)[0]
+
+        st.write(
+            f"Fake probability: {probability[0] * 100:.2f}%"
+        )
+        st.write(
+            f"Real probability: {probability[1] * 100:.2f}%"
+        )
+
+st.info(
+    "Note: This model predicts based on patterns learned from its training data. "
+    "It does not independently verify facts from the internet."
+)
